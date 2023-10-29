@@ -1,0 +1,16 @@
+tqdm==4.66.1
+arrr==1.0.4
+peft==0.5.0
+datasets==2.12.0
+bitsandbytes==0.40.1
+einops==0.6.1
+trl==0.4.7
+torch==2.0.1
+accelerate==0.21.0
+transformers==4.31.0
+scipy==1.11.3
+gradio==3.35.2
+sentence-transformers==2.2.2
+unstructured==0.7.12
+pymilvus==2.3.0b1
+langchain==0.0.324
