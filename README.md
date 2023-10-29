@@ -33,7 +33,9 @@ cd odsc-west-2023
 make conda-env
 ```
 
-4. Execute the [main.ipynb](main.ipynb) notebook.
+4. Copy [secrets.default.env](secrets.default.env) as `secrets.env` and populate with relevant credentials.
+
+5. Execute the [main.ipynb](main.ipynb) notebook.
 
 
 ## References
