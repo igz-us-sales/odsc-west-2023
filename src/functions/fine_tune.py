@@ -10,7 +10,6 @@ import pandas as pd
 import torch
 import transformers
 from datasets import Dataset
-import mlrun
 from mlrun.artifacts.manager import Artifact, PlotlyArtifact
 from mlrun.execution import MLClientCtx
 from mlrun.frameworks._common import CommonTypes, MLRunInterface
@@ -290,8 +289,7 @@ def train(
     tokenizer_class = create_class(tokenizer_class)
 
     tokenizer = tokenizer_class.from_pretrained(
-        pretrained_tokenizer,
-        trust_remote_code=True
+        pretrained_tokenizer, trust_remote_code=True
     )
     tokenizer.pad_token = tokenizer.eos_token
 
@@ -309,7 +307,7 @@ def train(
         pretrained_model,
         quantization_config=bnb_config,
         device_map="auto",
-        trust_remote_code=True
+        trust_remote_code=True,
     )
     model.config.use_cache = False
 

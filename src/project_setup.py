@@ -47,44 +47,40 @@ def create_and_set_project(
         func="src/functions/get_pirate_dolly_data.py",
         kind="job",
         handler="get_pirate_dolly_data",
-        image=cpu_image
+        image=cpu_image,
     )
-    
+
     project.set_function(
         name="ingest-urls",
         func="src/functions/get_blog_data.py",
         kind="job",
         handler="ingest_urls",
         image=cpu_image,
-        with_repo=True
+        with_repo=True,
     )
-    
+
     project.set_function(
         name="fine-tune",
         func="src/functions/fine_tune.py",
         kind="job",
         handler="train",
-        image=gpu_image
+        image=gpu_image,
     )
-    
+
     serving_fn = project.set_function(
         "src/functions/serving.py",
         name="serving",
         kind="serving",
         image=gpu_image,
-        with_repo=True
+        with_repo=True,
     )
 
     # Set MLRun workflows
     project.set_workflow(
         name="ingest", workflow_path="src/workflows/ingest_workflow.py"
     )
-    project.set_workflow(
-        name="tune", workflow_path="src/workflows/tune_workflow.py"
-    )
-    project.set_workflow(
-        name="main", workflow_path="src/workflows/main_workflow.py"
-    )
+    project.set_workflow(name="tune", workflow_path="src/workflows/tune_workflow.py")
+    project.set_workflow(name="main", workflow_path="src/workflows/main_workflow.py")
 
     # Save and return the project:
     project.save()

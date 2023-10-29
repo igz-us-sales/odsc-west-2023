@@ -13,24 +13,9 @@ from tqdm import tqdm
 
 from src.config import AppConfig, get_vector_store
 
-
 logger = logging.getLogger(__name__)
 
 config = AppConfig()
-
-
-def apply_function_on_data_in_parallel(
-    function: Callable, data: Iterable, description: str, **kwargs
-) -> List[Any]:
-    with Pool(processes=os.cpu_count()) as pool:
-        results = []
-        with tqdm(total=len(data), desc=description, ncols=80) as pbar:
-            for _, docs in enumerate(
-                pool.imap_unordered(partial(function, **kwargs), data)
-            ):
-                results.append(docs)
-                pbar.update()
-    return results
 
 
 def get_existing_milvus_documents(store: Milvus) -> set:
@@ -48,12 +33,6 @@ def filter_urls(new_urls: List[str], existing_urls: List[str]) -> List[str]:
 def load_all_urls(urls: List[str]) -> List[Document]:
     loader = UnstructuredURLLoader(urls=urls, headers={"User-Agent": "Mozilla/5.0"})
     return loader.load()
-
-
-# def load_all_urls(urls: List[str]) -> List[Document]:
-#     return apply_function_on_data_in_parallel(
-#         function=load_single_url, data=urls, description="Loading new URLs"
-#     )
 
 
 def process_documents(

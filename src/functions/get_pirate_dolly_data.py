@@ -1,9 +1,9 @@
 import copy
-import pandas as pd
-from datasets import load_dataset, Dataset
-from arrr import translate
-import mlrun
 
+import mlrun
+import pandas as pd
+from arrr import translate
+from datasets import Dataset, load_dataset
 
 INTRO_BLURB = "Below is an instruction that describes a task. Write a response that appropriately completes the request."
 INSTRUCTION_KEY = "### Instruction:"
@@ -65,6 +65,7 @@ def apply_prompt_template(examples):
             instruction=instruction, response=response
         )
     return {"text": full_prompt}
+
 
 @mlrun.handler(outputs=["regular-dataset", "pirate-dataset"])
 def get_pirate_dolly_data(

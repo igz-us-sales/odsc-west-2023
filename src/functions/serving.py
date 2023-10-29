@@ -1,18 +1,18 @@
 import json
 import os
 import zipfile
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List, Tuple
 
 import mlrun
 import mlrun.artifacts
 import numpy as np
 import torch
 import transformers
-from transformers import StoppingCriteria, StoppingCriteriaList
+from langchain.docstore.document import Document
 from mlrun.serving.v2_serving import V2ModelServer
 from mlrun.utils import create_class
-from peft import PeftModel, PeftConfig
-from langchain.docstore.document import Document
+from peft import PeftConfig, PeftModel
+from transformers import StoppingCriteria, StoppingCriteriaList
 
 from src.config import AppConfig, get_vector_store
 
@@ -71,17 +71,21 @@ def parse_documents(relevant_documents: List[Document]) -> Tuple[str, set]:
     context = "\n\n".join(context)
     return context, sources
 
+
 class StopOnTokens(StoppingCriteria):
     def __init__(self, stop_token_ids: list):
         StoppingCriteria.__init__(self)
         self.stop_token_ids = stop_token_ids
-    
-    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+
+    def __call__(
+        self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+    ) -> bool:
         # print(input_ids)
         for stop_id in self.stop_token_ids:
             if input_ids[0][-1] == stop_id:
                 return True
         return False
+
 
 def preprocess(request: dict) -> dict:
     """
@@ -89,28 +93,32 @@ def preprocess(request: dict) -> dict:
 
     :param request: A http request that contains the prompt
     """
-    
+
     # Read bytes:
     if isinstance(request, bytes):
         request = json.loads(request)
-        
+
     # Get the prompt:
     formatted_prompt = None
     user_prompt = request.pop("prompt")
-        
+
     rag = request.pop("rag")
     k = request.pop("k")
     sources = ""
-    
+
     if rag:
         docs = store.similarity_search(user_prompt, k=k)
         context, sources = parse_documents(docs)
-        formatted_prompt = PROMPT_WITH_INPUT_FORMAT.format(instruction=user_prompt, input=context)
+        formatted_prompt = PROMPT_WITH_INPUT_FORMAT.format(
+            instruction=user_prompt, input=context
+        )
     else:
         formatted_prompt = PROMPT_NO_INPUT_FORMAT.format(instruction=user_prompt)
 
     # Update the request and return:
-    request = {"inputs": [{"prompt": [formatted_prompt], "sources" : sources, **request}]}
+    request = {
+        "inputs": [{"prompt": [formatted_prompt], "sources": sources, **request}]
+    }
     return request
 
 
@@ -156,7 +164,7 @@ class LLMModelServer(V2ModelServer):
 
         # Save load model arguments:
         self.model_args = model_args
-        
+
         # Generation arguments
         self.stop_token = stop_token
 
@@ -183,7 +191,7 @@ class LLMModelServer(V2ModelServer):
 
         if self.adapters:
             self._load_adapters()
-            
+
         if self.stop_token:
             self._load_stop_criteria()
 
@@ -211,12 +219,18 @@ class LLMModelServer(V2ModelServer):
             if i == 0:
                 print(f"Loading model with {adapter_name} adapter")
                 model_directory = self._extract_model(adapter_path)
-                self.model = PeftModel.from_pretrained(model=self.model, adapter_name=adapter_name, model_id=model_directory)
+                self.model = PeftModel.from_pretrained(
+                    model=self.model,
+                    adapter_name=adapter_name,
+                    model_id=model_directory,
+                )
             else:
                 print(f"Loading {adapter_name} adapter")
                 model_directory = self._extract_model(adapter_path)
                 peft_config = PeftConfig.from_pretrained(model_directory)
-                self.model.add_adapter(adapter_name=adapter_name, peft_config=peft_config)       
+                self.model.add_adapter(
+                    adapter_name=adapter_name, peft_config=peft_config
+                )
         self.model.eval()
 
     def _load_from_mlrun(self):
@@ -237,14 +251,13 @@ class LLMModelServer(V2ModelServer):
         self.model = self._model_class.from_pretrained(
             self.model_name, **self.model_args
         )
-        
+
     def _load_stop_criteria(self):
         # Stop model generation when encountering these tokens (increases performance)
         stop_token_ids = self.tokenizer.convert_tokens_to_ids([self.stop_token])
-        self.stopping_criteria = StoppingCriteriaList([
-            StopOnTokens(stop_token_ids=stop_token_ids)
-        ])
-        
+        self.stopping_criteria = StoppingCriteriaList(
+            [StopOnTokens(stop_token_ids=stop_token_ids)]
+        )
 
     def predict(self, request: Dict[str, Any]) -> dict:
         # Get the inputs:
@@ -275,15 +288,15 @@ class LLMModelServer(V2ModelServer):
 
         # Detokenize:
         prediction = self.tokenizer.decode(output[0], skip_special_tokens=True)
-        
+
         # Remove prompt at beginning
-        prediction = prediction[len(prompt):]
-        
+        prediction = prediction[len(prompt) :]
+
         # Remove garbage at end
         if self.stop_token:
             prediction = prediction.split(self.stop_token)[0].strip()
 
-        return {"prediction": prediction, "prompt": prompt, "sources" : list(sources)}
+        return {"prediction": prediction, "prompt": prompt, "sources": list(sources)}
 
     def explain(self, request: Dict) -> str:
         return f"LLM model server named {self.name}"
