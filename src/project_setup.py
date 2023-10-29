@@ -11,7 +11,6 @@ def create_and_set_project(
     artifact_path: str = None,
     user_project: bool = False,
     secrets_file: str = None,
-    force_build: bool = False,
 ):
     # Set environment secrets via secrets file
     if secrets_file and os.path.exists(secrets_file):
@@ -76,10 +75,6 @@ def create_and_set_project(
     )
 
     # Set MLRun workflows
-    project.set_workflow(
-        name="ingest", workflow_path="src/workflows/ingest_workflow.py"
-    )
-    project.set_workflow(name="tune", workflow_path="src/workflows/tune_workflow.py")
     project.set_workflow(name="main", workflow_path="src/workflows/main_workflow.py")
 
     # Save and return the project:
