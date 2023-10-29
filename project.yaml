@@ -9,10 +9,6 @@ spec:
     kind: job
     image: mlrun/mlrun:1.4.1
     handler: assert_build
-  - url: src/functions/scrape_reddit.py
-    name: scrape-reddit
-    kind: job
-    handler: scrape_subreddit_comments
   - url: src/functions/fine_tune.py
     name: fine-tune
     kind: job
@@ -44,7 +40,7 @@ spec:
   artifacts: []
   conda: ''
   source: git://github.com/igz-us-sales/k3d-mlrun#master
-  origin_url: git://github.com/igz-us-sales/k3d-mlrun.git#refs/heads/master
+  origin_url: git://github.com/igz-us-sales/odsc-west-2023.git#refs/heads/master
   load_source_on_run: true
   desired_state: online
   owner: nick
