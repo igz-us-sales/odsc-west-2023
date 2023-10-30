@@ -33,9 +33,13 @@ spec:
   workflows:
   - path: src/workflows/main_workflow.py
     name: main
+  - path: src/workflows/ingest_workflow.py
+    name: ingest
+  - path: src/workflows/tune_workflow.py
+    name: tune
   artifacts: []
   conda: ''
-  source: git://github.com/igz-us-sales/k3d-mlrun#master
+  source: git://github.com/igz-us-sales/odsc-west-2023#master
   origin_url: git://github.com/igz-us-sales/odsc-west-2023.git#refs/heads/master
   load_source_on_run: true
   desired_state: online
