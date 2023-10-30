@@ -12,7 +12,7 @@ from langchain.docstore.document import Document
 from mlrun.serving.v2_serving import V2ModelServer
 from mlrun.utils import create_class
 from peft import PeftConfig, PeftModel
-from transformers import StoppingCriteria, StoppingCriteriaList
+from transformers import StoppingCriteria, StoppingCriteriaList, set_seed
 
 from src.config import AppConfig, get_vector_store
 
@@ -265,6 +265,11 @@ class LLMModelServer(V2ModelServer):
         adapter = kwargs.pop("adapter")
         prompt = kwargs.pop("prompt")[0]
         sources = kwargs.pop("sources")
+        seed = kwargs.pop("seed", None)
+        
+        # Optionally set seed
+        if seed:
+            set_seed(seed)
 
         # Tokenize:
         inputs = self.tokenizer(prompt, return_tensors="pt")["input_ids"]
@@ -284,7 +289,6 @@ class LLMModelServer(V2ModelServer):
             stopping_criteria=self.stopping_criteria,
             **kwargs,
         )
-        print("SOMETHING CHANGED")
 
         # Detokenize:
         prediction = self.tokenizer.decode(output[0], skip_special_tokens=True)
